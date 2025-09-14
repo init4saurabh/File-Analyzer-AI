@@ -1,3 +1,9 @@
+# 📂 AI File Upload & Analysis Tool  
+
+An **AI-powered File Upload and Analysis Tool** built with **Next.js, React, TypeScript, and TailwindCSS**.  
+Upload multiple files (images, PDFs, documents, etc.), provide a custom **prompt**, and receive **AI-generated insights** about the content.  
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
