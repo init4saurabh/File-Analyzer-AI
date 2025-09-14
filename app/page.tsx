@@ -8,7 +8,7 @@ export default function Home() {
       <div className="max-w-xl mx-auto">
         <FileUpload
           maxFiles={5}
-          maxSize={10 * 1024 * 1024} // 10MB
+          maxSize={10 * 1024 * 1024} 
           accept={{
             "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"],
             "application/pdf": [".pdf"],
