@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { UploadCloud, X, FileIcon, AlertCircle, Loader2 } from "lucide-react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, FileRejection } from "react-dropzone";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import { getAiResult } from "@/server/ai";
 
 interface FileUploadProps {
   maxFiles?: number;
-  maxSize?: number; 
+  maxSize?: number;
   accept?: Record<string, string[]>;
   className?: string;
   disabled?: boolean;
@@ -40,16 +40,16 @@ export function FileUpload({
   onFilesChange,
 }: FileUploadProps) {
   const [aiResult, setAiResult] = React.useState<string | null>(null);
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [isLoading, setIsLoading] = React.useState(false);
   const [files, setFiles] = React.useState<File[]>([]);
-  const [prompt, setPrompt] = React.useState<string>("");
+  const [prompt, setPrompt] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = React.useState<
     Record<string, number>
   >({});
 
   const onDrop = React.useCallback(
-    (acceptedFiles: File[], rejectedFiles: any[]) => {
+    (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
       setError(null);
 
       if (rejectedFiles.length > 0) {
@@ -76,14 +76,12 @@ export function FileUpload({
       const newFiles = [...files, ...acceptedFiles];
       setFiles(newFiles);
 
-      // progress upload krte time
+      // simulate upload progress
       acceptedFiles.forEach((file) => {
         simulateUploadProgress(file.name);
       });
 
-      if (onFilesChange) {
-        onFilesChange(newFiles);
-      }
+      onFilesChange?.(newFiles);
     },
     [files, maxFiles, maxSize, onFilesChange]
   );
@@ -108,16 +106,14 @@ export function FileUpload({
     const removedFile = newFiles.splice(index, 1)[0];
     setFiles(newFiles);
 
-    //  progress khtm 
+    // clear progress
     setUploadProgress((prev) => {
       const updated = { ...prev };
       delete updated[removedFile.name];
       return updated;
     });
 
-    if (onFilesChange) {
-      onFilesChange(newFiles);
-    }
+    onFilesChange?.(newFiles);
   };
 
   const formatBytes = (bytes: number, decimals = 2) => {
@@ -140,12 +136,20 @@ export function FileUpload({
   });
 
   const onSubmit = async () => {
+    if (files.length === 0) {
+      setError("Please upload a file before submitting.");
+      return;
+    }
+
     setIsLoading(true);
-
-    const result = await getAiResult(prompt, files[0]);
-    setAiResult(result);
-
-    setIsLoading(false);
+    try {
+      const result = await getAiResult(prompt, files[0]);
+      setAiResult(result);
+    } catch (err) {
+      setError("Something went wrong while analyzing the file.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -258,9 +262,7 @@ export function FileUpload({
                   onClick={() => {
                     setFiles([]);
                     setUploadProgress({});
-                    if (onFilesChange) {
-                      onFilesChange([]);
-                    }
+                    onFilesChange?.([]);
                   }}
                 >
                   Clear All
